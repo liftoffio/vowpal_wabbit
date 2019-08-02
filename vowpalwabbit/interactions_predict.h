@@ -70,6 +70,27 @@ inline float INTERACTION_VALUE(float value1, float value2) { return value1 * val
 
 // #define GEN_INTER_LOOP
 
+// back to old hash method only for quadratic features
+template <class R, class S, void (*T)(R&, float, S), bool audit, void (*audit_func)(R&, const audit_strings*), class W>
+inline void inner_kernel_quadratic_vw_707(R& dat, features::iterator_all& begin, features::iterator_all& end, const uint64_t offset,
+    W& weights, feature_value ft_value, feature_index halfhash)
+{
+  if (audit)
+  {
+    for (; begin != end; ++begin)
+    {
+      audit_func(dat, begin.audit().get());
+      call_T<R, T>(dat, weights, INTERACTION_VALUE(ft_value, begin.value()), (begin.index() + halfhash) + offset);
+      audit_func(dat, nullptr);
+    }
+  }
+  else
+  {
+    for (; begin != end; ++begin)
+      call_T<R, T>(dat, weights, INTERACTION_VALUE(ft_value, begin.value()), (begin.index() + halfhash) + offset);
+  }
+}
+
 template <class R, class S, void (*T)(R&, float, S), bool audit, void (*audit_func)(R&, const audit_strings*), class W>
 inline void inner_kernel(R& dat, features::iterator_all& begin, features::iterator_all& end, const uint64_t offset,
     W& weights, feature_value ft_value, feature_index halfhash)
@@ -138,7 +159,7 @@ inline void generate_interactions(std::vector<std::string>& interactions, bool p
 
           for (size_t i = 0; i < first.indicies.size(); ++i)
           {
-            feature_index halfhash = FNV_prime * (uint64_t)first.indicies[i];
+            feature_index halfhash = quadratic_constant * (uint64_t)first.indicies[i];
             if (audit)
               audit_func(dat, first.space_names[i].get());
             // next index differs for permutations and simple combinations
@@ -149,7 +170,7 @@ inline void generate_interactions(std::vector<std::string>& interactions, bool p
               begin += (PROCESS_SELF_INTERACTIONS(ft_value)) ? i : i + 1;
 
             features::iterator_all end = range.end();
-            inner_kernel<R, S, T, audit, audit_func>(dat, begin, end, offset, weights, ft_value, halfhash);
+            inner_kernel_quadratic_vw_707<R, S, T, audit, audit_func>(dat, begin, end, offset, weights, ft_value, halfhash);
 
             if (audit)
               audit_func(dat, nullptr);
