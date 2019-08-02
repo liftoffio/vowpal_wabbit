@@ -228,10 +228,10 @@ void update_state_and_predict_cb(ftrl& b, single_learner&, example& ec)
 
   GD::foreach_feature<update_data, inner_update_cb_state_and_predict>(*b.all, ec, b.data);
 
-  b.all->normalized_sum_norm_x += ((double)ec.weight) * b.data.normalized_squared_norm_x;
+  b.all->normalized_sum_norm_x += ec.weight * b.data.normalized_squared_norm_x;
   b.total_weight += ec.weight;
 
-  ec.partial_prediction = b.data.predict / ((float)((b.all->normalized_sum_norm_x + 1e-6) / b.total_weight));
+  ec.partial_prediction = b.data.predict / ((b.all->normalized_sum_norm_x + 1e-6) / ((float)b.total_weight));
 
   ec.pred.scalar = GD::finalize_prediction(b.all->sd, ec.partial_prediction);
 }
