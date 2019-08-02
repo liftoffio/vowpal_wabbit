@@ -42,7 +42,7 @@ namespace GD
 {
 struct gd
 {
-  //  double normalized_sum_norm_x;
+  //  float normalized_sum_norm_x;
   double total_weight;
   size_t no_win_counter;
   size_t early_stop_thres;
@@ -125,14 +125,14 @@ float average_update(float total_weight, float normalized_sum_norm_x, float neg_
   {
     if (sqrt_rate)
     {
-      float avg_norm = (float)(total_weight / normalized_sum_norm_x);
+      float avg_norm = total_weight / normalized_sum_norm_x;
       if (adaptive)
         return sqrt(avg_norm);
       else
         return avg_norm;
     }
     else
-      return powf((float)(normalized_sum_norm_x / total_weight), neg_norm_power);
+      return powf(normalized_sum_norm_x / total_weight, neg_norm_power);
   }
   return 1.f;
 }
@@ -558,15 +558,15 @@ float get_pred_per_update(gd& g, example& ec)
   {
     if (!stateless)
     {
-      g.all->normalized_sum_norm_x += ((double)ec.weight) * nd.norm_x;
+      g.all->normalized_sum_norm_x += ec.weight * nd.norm_x;
       g.total_weight += ec.weight;
       g.update_multiplier = average_update<sqrt_rate, adaptive, normalized>(
-          (float)g.total_weight, (float)g.all->normalized_sum_norm_x, g.neg_norm_power);
+          (float)g.total_weight, g.all->normalized_sum_norm_x, g.neg_norm_power);
     }
     else
     {
-      float nsnx = ((float)g.all->normalized_sum_norm_x) + ec.weight * nd.norm_x;
-      float tw = (float)g.total_weight + ec.weight;
+      float nsnx = g.all->normalized_sum_norm_x + ec.weight * nd.norm_x;
+      float tw = g.total_weight + ec.weight;
       g.update_multiplier = average_update<sqrt_rate, adaptive, normalized>(tw, nsnx, g.neg_norm_power);
     }
     nd.pred_per_update *= g.update_multiplier;
