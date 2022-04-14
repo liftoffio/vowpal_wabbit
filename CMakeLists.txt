@@ -63,8 +63,14 @@ if(WIN32 AND (PROFILE OR VALGRIND_PROFILE OR GCOV OR STATIC_LINK_VW OR BUILD_JAV
   message(FATAL_ERROR "Unsupported option enabled on Windows build")
 endif()
 
+# This was the previous default but is only valid on x86_64 systems.
+set(linux_x86_64_opt_flags "")
+if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+  set(linux_x86_64_opt_flags -msse2 -mfpmath=sse)
+endif()
+
 # Add -ffast-math for speed, remove for testability.
-set(linux_release_config -O3 -fno-strict-aliasing -msse2 -mfpmath=sse)
+set(linux_release_config -O3 -fno-strict-aliasing ${linux_x86_64_opt_flags} -fno-stack-check)
 set(linux_debug_config -g -O0)
 
 if((NOT PROFILE) AND (NOT GCOV))
