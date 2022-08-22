@@ -69,8 +69,14 @@ if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
   set(linux_x86_64_opt_flags -msse2 -mfpmath=sse)
 endif()
 
+# Flags for optimal performance on arm64
+set(linux_arm64_opt_flags "")
+if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "aarch64|arm64|ARM64")
+  set(linux_arm64_opt_flags -mcpu=neoverse-n1)
+endif()
+
 # Add -ffast-math for speed, remove for testability.
-set(linux_release_config -O3 -fno-strict-aliasing ${linux_x86_64_opt_flags} -fno-stack-check)
+set(linux_release_config -O3 -fno-strict-aliasing ${linux_x86_64_opt_flags} ${linux_arm64_opt_flags} -fno-stack-check)
 set(linux_debug_config -g -O0)
 
 if((NOT PROFILE) AND (NOT GCOV))

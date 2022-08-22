@@ -17,8 +17,12 @@ license as described in the file LICENSE.
 #define __SSE2__
 #endif
 
-#if defined(__ARM_NEON__)
+#if defined(__ARM_NEON)
 #include <arm_neon.h>
+#include "sse2neon.h"
+#define __SSE2__ 1
+#define __SSE3__ 1
+#define __SSE4_1__ 1
 #elif defined(__SSE2__)
 #include <xmmintrin.h>
 #endif
@@ -80,7 +84,11 @@ inline float quake_InvSqrt(float x)
 static inline float InvSqrt(float x)
 {
 #if !defined(VW_NO_INLINE_SIMD)
-#if defined(__ARM_NEON__)
+#if defined(__SSE2__)
+  __m128 eta = _mm_load_ss(&x);
+  eta = _mm_rsqrt_ss(eta);
+  _mm_store_ss(&x, eta);
+#elif defined(__ARM_NEON)
   // Propagate into vector
   float32x2_t v1 = vdup_n_f32(x);
   // Estimate
@@ -91,10 +99,6 @@ static inline float InvSqrt(float x)
   float32x2_t e3 = vmul_f32(e2, vrsqrts_f32(v1, vmul_f32(e2, e2)));
   // Extract result
   return vget_lane_f32(e3, 0);
-#elif defined(__SSE2__)
-  __m128 eta = _mm_load_ss(&x);
-  eta = _mm_rsqrt_ss(eta);
-  _mm_store_ss(&x, eta);
 #else
   x = quake_InvSqrt(x);
 #endif

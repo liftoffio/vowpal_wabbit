@@ -167,7 +167,7 @@ inline float fastdigamma(float x)
 
 #if !defined(VW_NO_INLINE_SIMD)
 
-#if defined(__SSE2__) || defined(__SSE3__) || defined(__SSE4_1__)
+#if defined(__SSE2__) || defined(__SSE3__) || defined(__SSE4_1__) || defined(__ARM_NEON)
 
 // Include headers for the various SSE versions:
 #if defined(__SSE2__)
@@ -178,6 +178,14 @@ inline float fastdigamma(float x)
 #endif
 #if defined(__SSE4_1__)
 #include <smmintrin.h>
+#endif
+
+#if defined(__ARM_NEON)
+#include <arm_neon.h>
+#include "sse2neon.h"
+#define __SSE2__ 1
+#define __SSE3__ 1
+#define __SSE4_1__ 1
 #endif
 
 #define HAVE_SIMD_MATHMODE
